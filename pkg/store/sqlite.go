@@ -24,6 +24,12 @@ func NewSQLiteStore(dbPath string) (*SQLiteStore, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Configure connection pool for optimal performance and resource management
+	db.SetMaxOpenConns(25)                // Limit concurrent connections
+	db.SetMaxIdleConns(5)                 // Maintain idle connection pool
+	db.SetConnMaxLifetime(5 * time.Minute) // Recycle connections periodically
+	db.SetConnMaxIdleTime(2 * time.Minute) // Close long-idle connections
+
 	store := &SQLiteStore{db: db}
 	if err := store.migrate(); err != nil {
 		db.Close()
