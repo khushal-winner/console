@@ -138,7 +138,7 @@ func (h *MCPHandlers) ListClusters(c *fiber.Ctx) error {
 
 		// Kick off a background health refresh so subsequent calls get fresh data
 		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), mcpHealthTimeout)
+			ctx, cancel := context.WithTimeout(c.Context(), mcpHealthTimeout)
 			defer cancel()
 			h.k8sClient.GetAllClusterHealth(ctx)
 		}()
