@@ -104,7 +104,8 @@ const SORT_COMPARATORS: Record<SortByOption, (a: StockData, b: StockData) => num
   price: commonComparators.number<StockData>('price'),
   change: commonComparators.number<StockData>('changePercent'),
   volume: commonComparators.number<StockData>('volume'),
-  marketCap: commonComparators.number<StockData>('marketCap') }
+  marketCap: commonComparators.number<StockData>('marketCap')
+}
 
 // Default stock symbols to track
 const DEFAULT_SYMBOLS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA']
@@ -113,7 +114,7 @@ const DEFAULT_SYMBOLS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA'
 const CORS_PROXY = 'https://corsproxy.io/?'
 
 // Fetch real stock data from Yahoo Finance API (via CORS proxy)
-async function fetchRealStockData(symbols: string[]): Promise<StockData[]> {
+async function fetchRealStockData(symbols: string[], onError?: (msg: string) => void): Promise<StockData[]> {
   try {
     const symbolsString = symbols.join(',')
     const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsString}&fields=symbol,longName,regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow,regularMarketVolume,marketCap,fiftyTwoWeekHigh,fiftyTwoWeekLow`
@@ -159,11 +160,12 @@ async function fetchRealStockData(symbols: string[]): Promise<StockData[]> {
         week52High: quote.fiftyTwoWeekHigh || currentPrice,
         week52Low: quote.fiftyTwoWeekLow || currentPrice,
         sparklineData,
-        lastUpdated: new Date() }
+        lastUpdated: new Date()
+      }
     })
   } catch (error) {
     console.error('Error fetching real stock data:', error)
-    // Fallback to mock data on error
+    onError?.('Using fallback data: stock API unavailable')
     return generateMockStockData(symbols)
   }
 }
@@ -230,7 +232,8 @@ async function searchStocks(query: string): Promise<StockSearchResult[]> {
         name: q.longname || q.shortname || q.symbol,
         type: q.quoteType,
         region: q.exchDisp || q.exchange || 'US',
-        currency: q.currency || 'USD' }))
+        currency: q.currency || 'USD'
+      }))
       .slice(0, 10)
   } catch (error) {
     console.error('Error searching stocks, using fallback:', error)
@@ -288,7 +291,8 @@ function generateMockStockData(symbols: string[]): StockData[] {
     'NVDA': 'NVIDIA Corporation',
     'NFLX': 'Netflix Inc.',
     'AMD': 'Advanced Micro Devices',
-    'INTC': 'Intel Corporation' }
+    'INTC': 'Intel Corporation'
+  }
 
   // Base prices for known stocks
   const basePrices: Record<string, number> = {
@@ -301,7 +305,8 @@ function generateMockStockData(symbols: string[]): StockData[] {
     'NVDA': 495.30,
     'NFLX': 485.20,
     'AMD': 165.75,
-    'INTC': 45.30 }
+    'INTC': 45.30
+  }
 
   return symbols.map(symbol => {
     const basePrice = basePrices[symbol] || 100
@@ -340,7 +345,8 @@ function generateMockStockData(symbols: string[]): StockData[] {
       week52High: price + (basePrice * 0.15),
       week52Low: price - (basePrice * 0.15),
       sparklineData,
-      lastUpdated: new Date() }
+      lastUpdated: new Date()
+    }
   })
 }
 
@@ -558,9 +564,10 @@ export function StockMarketTicker({ config }: StockMarketTickerProps) {
     persist: true,
     fetcher: async () => {
       return useLiveData
-        ? await fetchRealStockData(activeSymbols)
+        ? await fetchRealStockData(activeSymbols, (msg) => showToast(msg, 'info'))
         : generateMockStockData(activeSymbols)
-    } })
+    }
+  })
 
   const hasStockData = stockData.length > 0
   useCardLoadingState({ isLoading: isLoadingData && !hasStockData, isRefreshing: stockRefreshing, hasAnyData: hasStockData, isDemoData: false })
@@ -588,14 +595,17 @@ export function StockMarketTicker({ config }: StockMarketTickerProps) {
     sorting,
     containerRef,
     containerStyle } = useCardData<StockData, SortByOption>(stockData, {
-    filter: {
-      searchFields: ['symbol', 'name'] as (keyof StockData)[],
-      storageKey: 'stock-ticker' },
-    sort: {
-      defaultField: 'change',
-      defaultDirection: 'desc',
-      comparators: SORT_COMPARATORS },
-    defaultLimit: 10 })
+      filter: {
+        searchFields: ['symbol', 'name'] as (keyof StockData)[],
+        storageKey: 'stock-ticker'
+      },
+      sort: {
+        defaultField: 'change',
+        defaultDirection: 'desc',
+        comparators: SORT_COMPARATORS
+      },
+      defaultLimit: 10
+    })
 
   // Search for stocks
   const performStockSearch = useCallback(async (query: string) => {
@@ -651,7 +661,8 @@ export function StockMarketTicker({ config }: StockMarketTickerProps) {
           name: stock.name,
           price: 0,
           changePercent: 0,
-          favorite: true }])
+          favorite: true
+        }])
       }
     }
     setStockSearchInput('')
@@ -679,7 +690,8 @@ export function StockMarketTicker({ config }: StockMarketTickerProps) {
         name: currentStock.name,
         price: currentStock.price,
         changePercent: currentStock.changePercent,
-        favorite: true }])
+        favorite: true
+      }])
     }
   }
 
@@ -738,7 +750,8 @@ export function StockMarketTicker({ config }: StockMarketTickerProps) {
             sortOptions: SORT_OPTIONS,
             onSortChange: (v) => sorting.setSortBy(v as SortByOption),
             sortDirection: sorting.sortDirection,
-            onSortDirectionChange: sorting.setSortDirection }}
+            onSortDirectionChange: sorting.setSortDirection
+          }}
         />
       </div>
 
