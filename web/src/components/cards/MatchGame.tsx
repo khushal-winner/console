@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { CardComponentProps } from './cardRegistry'
 import { useCardExpanded } from './CardWrapper'
-import { useCardLoadingState } from './CardDataContext'
+import { useReportCardDataState } from './CardDataContext'
 import { useTranslation } from 'react-i18next'
 import { emitGameStarted, emitGameEnded } from '../../lib/analytics'
 import { useToast } from '../ui/Toast'
@@ -51,7 +51,7 @@ const DIFFICULTY_CONFIG = {
 export function MatchGame(_props: CardComponentProps) {
   const { t } = useTranslation()
   const { showToast } = useToast()
-  useCardLoadingState({ isLoading: false, hasAnyData: true, isDemoData: false, isFailed: false, consecutiveFailures: 0 })
+  useReportCardDataState({ hasData: true, isFailed: false, consecutiveFailures: 0, isDemoData: false })
   const { isExpanded } = useCardExpanded()
   const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const [cards, setCards] = useState<GameCard[]>([])
@@ -301,7 +301,6 @@ export function MatchGame(_props: CardComponentProps) {
             <button
               key={d}
               onClick={() => changeDifficulty(d)}
-              aria-pressed={difficulty === d}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${difficulty === d
                 ? 'bg-purple-500 text-white'
                 : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-muted-foreground'
