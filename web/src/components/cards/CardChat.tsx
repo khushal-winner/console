@@ -112,8 +112,7 @@ export function CardChat({
       if (response.action && onApplyAction) {
         // Show that an action was taken
       }
-    } catch (error) {
-      console.error('Chat error:', error)
+    } catch {
       showToast('Failed to send message. Please try again.', 'error')
     } finally {
       setIsLoading(false)
