@@ -75,7 +75,8 @@ export function MatchGame(_props: CardComponentProps) {
     if (stored) {
       try {
         setHighScores(JSON.parse(stored))
-      } catch (_e) {
+      } catch {
+        // User-visible error handling via showToast below
         showToast(t('matchGame.errors.highScoresFailed', 'Could not load high scores.'), 'warning')
       }
     }
