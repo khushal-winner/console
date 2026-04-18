@@ -5,7 +5,8 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
-  ChevronRight } from 'lucide-react'
+  ChevronRight
+} from 'lucide-react'
 import { useConsoleUsers, useAllK8sServiceAccounts, useAllOpenShiftUsers } from '../../hooks/useUsers'
 import { useClusters } from '../../hooks/useMCP'
 import { useGlobalFilters } from '../../hooks/useGlobalFilters'
@@ -59,11 +60,13 @@ function getSASortOptions(t: (key: string) => string) {
 // Sort comparators for each tab
 const OPENSHIFT_USER_COMPARATORS: Record<OpenShiftUserSortBy, (a: OpenShiftUser, b: OpenShiftUser) => number> = {
   name: commonComparators.string<OpenShiftUser>('name'),
-  kind: (a, b) => (a.fullName || '').localeCompare(b.fullName || '') }
+  kind: (a, b) => (a.fullName || '').localeCompare(b.fullName || '')
+}
 
 const SA_COMPARATORS: Record<SASortBy, (a: { name: string; namespace: string; cluster: string; roles?: string[] }, b: { name: string; namespace: string; cluster: string; roles?: string[] }) => number> = {
   name: (a, b) => a.name.localeCompare(b.name),
-  namespace: (a, b) => a.namespace.localeCompare(b.namespace) }
+  namespace: (a, b) => a.namespace.localeCompare(b.namespace)
+}
 
 export function UserManagement({ config: _config }: UserManagementProps) {
   const { t } = useTranslation(['cards', 'common'])
@@ -93,7 +96,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
     hasAnyData: allClusters.length > 0 || allUsers.length > 0 || allServiceAccounts.length > 0,
     isFailed: Boolean(usersError),
     consecutiveFailures: usersError ? 1 : 0,
-    isDemoData: isDemoMode })
+    isDemoData: isDemoMode
+  })
 
   const { selectedClusters, isAllClustersSelected } = useGlobalFilters()
 
@@ -115,7 +119,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
         avatar_url: currentUser.avatar_url,
         role: currentUser.role || 'viewer',
         onboarded: currentUser.onboarded,
-        created_at: new Date().toISOString() }
+        created_at: new Date().toISOString()
+      }
       result = [authUser, ...result]
     }
     return result
@@ -164,7 +169,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
       if (a.github_id === currentUser?.github_id) return -1
       if (b.github_id === currentUser?.github_id) return 1
       return (a.email || '').localeCompare(b.email || '')
-    } }
+    }
+  }
 
   // ---------- useCardData for OpenShift users tab ----------
   const {
@@ -180,18 +186,21 @@ export function UserManagement({ config: _config }: UserManagementProps) {
     sorting: openshiftUserSorting,
     containerRef,
     containerStyle } = useCardData<OpenShiftUser, OpenShiftUserSortBy>(openshiftUsersPreFiltered, {
-    filter: {
-      searchFields: ['name', 'cluster'] as (keyof OpenShiftUser)[],
-      clusterField: 'cluster' as keyof OpenShiftUser,
-      customPredicate: (u, query) =>
-        (u.fullName?.toLowerCase() || '').includes(query) ||
-        (u.groups?.some(g => g.toLowerCase().includes(query)) || false),
-      storageKey: 'user-management-cluster-users' },
-    sort: {
-      defaultField: 'name',
-      defaultDirection: 'asc',
-      comparators: OPENSHIFT_USER_COMPARATORS },
-    defaultLimit: 10 })
+      filter: {
+        searchFields: ['name', 'cluster'] as (keyof OpenShiftUser)[],
+        clusterField: 'cluster' as keyof OpenShiftUser,
+        customPredicate: (u, query) =>
+          (u.fullName?.toLowerCase() || '').includes(query) ||
+          (u.groups?.some(g => g.toLowerCase().includes(query)) || false),
+        storageKey: 'user-management-cluster-users'
+      },
+      sort: {
+        defaultField: 'name',
+        defaultDirection: 'asc',
+        comparators: OPENSHIFT_USER_COMPARATORS
+      },
+      defaultLimit: 10
+    })
 
   // ---------- useCardData for Service Accounts tab ----------
   const {
@@ -205,15 +214,18 @@ export function UserManagement({ config: _config }: UserManagementProps) {
     setItemsPerPage: setSaItemsPerPage,
     filters: saFilters,
     sorting: saSorting } = useCardData<typeof allServiceAccounts[number], SASortBy>(serviceAccountsPreFiltered, {
-    filter: {
-      searchFields: ['name', 'namespace', 'cluster'] as (keyof typeof allServiceAccounts[number])[],
-      clusterField: 'cluster' as keyof typeof allServiceAccounts[number],
-      storageKey: 'user-management-service-accounts' },
-    sort: {
-      defaultField: 'name',
-      defaultDirection: 'asc',
-      comparators: SA_COMPARATORS },
-    defaultLimit: 10 })
+      filter: {
+        searchFields: ['name', 'namespace', 'cluster'] as (keyof typeof allServiceAccounts[number])[],
+        clusterField: 'cluster' as keyof typeof allServiceAccounts[number],
+        storageKey: 'user-management-service-accounts'
+      },
+      sort: {
+        defaultField: 'name',
+        defaultDirection: 'asc',
+        comparators: SA_COMPARATORS
+      },
+      defaultLimit: 10
+    })
 
   // ---------- useCardData for Console Users tab ----------
   const {
@@ -227,35 +239,38 @@ export function UserManagement({ config: _config }: UserManagementProps) {
     setItemsPerPage: setConsoleUserItemsPerPage,
     filters: consoleUserFilters,
     sorting: consoleUserSorting } = useCardData<ConsoleUser, ConsoleUserSortBy>(usersWithCurrent, {
-    filter: {
-      searchFields: ['github_login', 'email', 'role'] as (keyof ConsoleUser)[],
-      storageKey: 'user-management-console-users' },
-    sort: {
-      defaultField: 'name',
-      defaultDirection: 'asc',
-      comparators: consoleUserComparators },
-    defaultLimit: 10 })
+      filter: {
+        searchFields: ['github_login', 'email', 'role'] as (keyof ConsoleUser)[],
+        storageKey: 'user-management-console-users'
+      },
+      sort: {
+        defaultField: 'name',
+        defaultDirection: 'asc',
+        comparators: consoleUserComparators
+      },
+      defaultLimit: 10
+    })
 
   // Active tab's filter/sorting references for the controls row
   const activeFilters = activeTab === 'clusterUsers' ? openshiftUserFilters
     : activeTab === 'serviceAccounts' ? saFilters
-    : consoleUserFilters
+      : consoleUserFilters
 
   const activeSorting = activeTab === 'clusterUsers' ? openshiftUserSorting
     : activeTab === 'serviceAccounts' ? saSorting
-    : consoleUserSorting
+      : consoleUserSorting
 
   const activeItemsPerPage = activeTab === 'clusterUsers' ? openshiftUserItemsPerPage
     : activeTab === 'serviceAccounts' ? saItemsPerPage
-    : consoleUserItemsPerPage
+      : consoleUserItemsPerPage
 
   const activeSetItemsPerPage = activeTab === 'clusterUsers' ? setOpenShiftUserItemsPerPage
     : activeTab === 'serviceAccounts' ? setSaItemsPerPage
-    : setConsoleUserItemsPerPage
+      : setConsoleUserItemsPerPage
 
   const activeSortOptions = activeTab === 'clusterUsers' ? getOpenShiftUserSortOptions(t as unknown as (key: string) => string)
     : activeTab === 'serviceAccounts' ? getSASortOptions(t as unknown as (key: string) => string)
-    : getConsoleUserSortOptions(t as unknown as (key: string) => string)
+      : getConsoleUserSortOptions(t as unknown as (key: string) => string)
 
   const isAdmin = currentUser?.role === 'admin'
 
@@ -351,21 +366,23 @@ export function UserManagement({ config: _config }: UserManagementProps) {
           clusterIndicator={
             activeFilters.localClusterFilter.length > 0
               ? {
-                  selectedCount: activeFilters.localClusterFilter.length,
-                  totalCount: activeFilters.availableClusters.length }
+                selectedCount: activeFilters.localClusterFilter.length,
+                totalCount: activeFilters.availableClusters.length
+              }
               : undefined
           }
           clusterFilter={
             activeFilters.availableClusters.length >= 1
               ? {
-                  availableClusters: activeFilters.availableClusters,
-                  selectedClusters: activeFilters.localClusterFilter,
-                  onToggle: activeFilters.toggleClusterFilter,
-                  onClear: activeFilters.clearClusterFilter,
-                  isOpen: activeFilters.showClusterFilter,
-                  setIsOpen: activeFilters.setShowClusterFilter,
-                  containerRef: activeFilters.clusterFilterRef,
-                  minClusters: 1 }
+                availableClusters: activeFilters.availableClusters,
+                selectedClusters: activeFilters.localClusterFilter,
+                onToggle: activeFilters.toggleClusterFilter,
+                onClear: activeFilters.clearClusterFilter,
+                isOpen: activeFilters.showClusterFilter,
+                setIsOpen: activeFilters.setShowClusterFilter,
+                containerRef: activeFilters.clusterFilterRef,
+                minClusters: 1
+              }
               : undefined
           }
           cardControls={{
@@ -379,7 +396,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
               else consoleUserSorting.setSortBy(v as ConsoleUserSortBy)
             },
             sortDirection: activeSorting.sortDirection,
-            onSortDirectionChange: activeSorting.setSortDirection }}
+            onSortDirectionChange: activeSorting.setSortDirection
+          }}
           className="mb-0"
         />
       </div>
@@ -390,8 +408,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
         onChange={activeFilters.setSearch}
         placeholder={
           activeTab === 'clusterUsers' ? t('userManagement.searchClusterUsers') :
-          activeTab === 'serviceAccounts' ? t('userManagement.searchServiceAccounts') :
-          t('userManagement.searchConsoleUsers')
+            activeTab === 'serviceAccounts' ? t('userManagement.searchServiceAccounts') :
+              t('userManagement.searchConsoleUsers')
         }
         className="mb-2 flex-shrink-0"
       />
@@ -463,7 +481,8 @@ export function UserManagement({ config: _config }: UserManagementProps) {
             onDrillToServiceAccount={(cluster, namespace, name, roles) =>
               drillToRBAC(cluster, namespace, name, {
                 type: 'ServiceAccount',
-                roles })
+                roles
+              })
             }
           />
         )}
@@ -590,7 +609,7 @@ function ConsoleUsersTab({
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
                     <span className="text-sm font-medium text-purple-400">
-                      {user.github_login[0].toUpperCase()}
+                      {user.github_login?.[0]?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}

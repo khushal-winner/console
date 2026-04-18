@@ -1,7 +1,8 @@
 import { useState, useMemo, useImperativeHandle, type Ref } from 'react'
 import {
   GitBranch, AlertTriangle, CheckCircle, XCircle,
-  Clock, Loader2, ExternalLink, Key, Settings, Plus, X, Check, Stethoscope } from 'lucide-react'
+  Clock, Loader2, ExternalLink, Key, Settings, Plus, X, Check, Stethoscope
+} from 'lucide-react'
 import { FETCH_EXTERNAL_TIMEOUT_MS } from '../../../lib/constants'
 import { Button } from '../../ui/Button'
 import { Skeleton } from '../../ui/Skeleton'
@@ -59,13 +60,15 @@ const CONCLUSION_BADGE: Record<string, string> = {
   cancelled: 'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground',
   skipped: 'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground',
   timed_out: 'bg-orange-500/20 text-orange-400',
-  action_required: 'bg-yellow-500/20 text-yellow-400' }
+  action_required: 'bg-yellow-500/20 text-yellow-400'
+}
 
 const STATUS_BADGE: Record<string, string> = {
   completed: 'bg-green-500/20 text-green-400',
   in_progress: 'bg-blue-500/20 text-blue-400',
   queued: 'bg-yellow-500/20 text-yellow-400',
-  waiting: 'bg-purple-500/20 text-purple-400' }
+  waiting: 'bg-purple-500/20 text-purple-400'
+}
 
 const CONCLUSION_ORDER: Record<string, number> = {
   failure: 0,
@@ -73,7 +76,8 @@ const CONCLUSION_ORDER: Record<string, number> = {
   action_required: 2,
   cancelled: 3,
   skipped: 4,
-  success: 5 }
+  success: 5
+}
 
 const SORT_OPTIONS = [
   { value: 'status', label: 'Status' },
@@ -106,7 +110,7 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
   // Repo configuration — shared filter overrides when on /ci-cd
   const [localRepos, setLocalRepos] = useState<string[]>(() => ghConfig?.repos || loadRepos())
   const repos = shared?.repoFilter ? [shared.repoFilter] : localRepos
-  const setRepos: React.Dispatch<React.SetStateAction<string[]>> = shared?.repoFilter ? () => {} : setLocalRepos
+  const setRepos: React.Dispatch<React.SetStateAction<string[]>> = shared?.repoFilter ? () => { } : setLocalRepos
   const [isEditingRepos, setIsEditingRepos] = useState(false)
   const [newRepoInput, setNewRepoInput] = useState('')
 
@@ -125,7 +129,8 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
         try {
           const response = await fetch(`/api/github/repos/${repo}/actions/runs?per_page=10`, {
             headers: { Accept: 'application/vnd.github.v3+json' },
-            signal: AbortSignal.timeout(FETCH_EXTERNAL_TIMEOUT_MS) })
+            signal: AbortSignal.timeout(FETCH_EXTERNAL_TIMEOUT_MS)
+          })
           if (response.status === 401 || response.status === 403) {
             // Token invalid or missing — fall back to demo data
             return { workflows: DEMO_WORKFLOWS, isDemo: true }
@@ -179,7 +184,8 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
         return { workflows: allRuns, isDemo: false }
       }
       return { workflows: DEMO_WORKFLOWS, isDemo: true }
-    } })
+    }
+  })
 
   const workflows = ciData.workflows
   // Don't report demo during cache hydration — initialData has isDemo: true as a
@@ -246,21 +252,25 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
     sorting,
     containerRef,
     containerStyle } = useCardData(workflows, {
-    filter: {
-      searchFields: ['name', 'repo', 'branch', 'event'] as (keyof WorkflowRun)[] },
-    sort: {
-      defaultField: 'status' as SortField,
-      defaultDirection: 'asc' as SortDirection,
-      comparators: {
-        name: commonComparators.string('name'),
-        status: (a, b) => {
-          const aOrder = a.conclusion ? (CONCLUSION_ORDER[a.conclusion] ?? 5) : -1
-          const bOrder = b.conclusion ? (CONCLUSION_ORDER[b.conclusion] ?? 5) : -1
-          return aOrder - bOrder
-        },
-        repo: commonComparators.string('repo'),
-        branch: commonComparators.string('branch') } },
-    defaultLimit: 8 })
+      filter: {
+        searchFields: ['name', 'repo', 'branch', 'event'] as (keyof WorkflowRun)[]
+      },
+      sort: {
+        defaultField: 'status' as SortField,
+        defaultDirection: 'asc' as SortDirection,
+        comparators: {
+          name: commonComparators.string('name'),
+          status: (a, b) => {
+            const aOrder = a.conclusion ? (CONCLUSION_ORDER[a.conclusion] ?? 5) : -1
+            const bOrder = b.conclusion ? (CONCLUSION_ORDER[b.conclusion] ?? 5) : -1
+            return aOrder - bOrder
+          },
+          repo: commonComparators.string('repo'),
+          branch: commonComparators.string('branch')
+        }
+      },
+      defaultLimit: 8
+    })
 
   // Synthesize issues
   const issues = useMemo<MonitorIssue[]>(() => {
@@ -278,11 +288,13 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
           category: 'workload' as const,
           lastChecked: w.updatedAt,
           optional: false,
-          order: 0 },
+          order: 0
+        },
         severity: w.conclusion === 'failure' ? 'critical' as const : 'warning' as const,
         title: `${w.name} ${w.conclusion} on ${w.branch}`,
         description: `Workflow run #${w.runNumber} in ${w.repo} ${w.conclusion}. Event: ${w.event}. Updated ${formatTimeAgo(w.updatedAt)}.`,
-        detectedAt: w.updatedAt }))
+        detectedAt: w.updatedAt
+      }))
   }, [workflows])
 
   const overallHealth = (() => {
@@ -326,8 +338,8 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
         <span className={cn(
           'text-xs px-1.5 py-0.5 rounded ml-auto',
           overallHealth === 'healthy' ? 'bg-green-500/20 text-green-400' :
-          overallHealth === 'degraded' ? 'bg-yellow-500/20 text-yellow-400' :
-          'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground',
+            overallHealth === 'degraded' ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground',
         )}>
           {overallHealth}
         </span>
@@ -457,9 +469,9 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
             ? (CONCLUSION_BADGE[w.conclusion || ''] || 'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground')
             : (STATUS_BADGE[w.status] || 'bg-gray-500/20 dark:bg-gray-400/20 text-muted-foreground')
           const StatusIcon = w.conclusion === 'success' ? CheckCircle :
-                             w.conclusion === 'failure' ? XCircle :
-                             w.status === 'in_progress' ? Loader2 :
-                             w.status === 'queued' ? Clock : AlertTriangle
+            w.conclusion === 'failure' ? XCircle :
+              w.status === 'in_progress' ? Loader2 :
+                w.status === 'queued' ? Clock : AlertTriangle
 
           return (
             <div
@@ -469,14 +481,14 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
               <StatusIcon className={cn(
                 'w-3.5 h-3.5 shrink-0',
                 w.conclusion === 'success' ? 'text-green-400' :
-                w.conclusion === 'failure' ? 'text-red-400' :
-                w.status === 'in_progress' ? 'text-blue-400 animate-spin' :
-                'text-muted-foreground',
+                  w.conclusion === 'failure' ? 'text-red-400' :
+                    w.status === 'in_progress' ? 'text-blue-400 animate-spin' :
+                      'text-muted-foreground',
               )} />
               <div className="flex-1 min-w-0">
                 <span className="text-xs text-foreground truncate block">{w.name}</span>
                 <span className="text-2xs text-muted-foreground truncate block">
-                  {w.repo.split('/')[1]} · {w.branch}
+                  {w.repo?.split('/')?.[1] || w.repo} · {w.branch}
                   {w.prNumber && (
                     <a href={w.prUrl || `https://github.com/${w.repo}/pull/${w.prNumber}`} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-400 hover:underline">#{w.prNumber}</a>
                   )}
@@ -488,62 +500,70 @@ export function GitHubCIMonitor({ config, ref }: GitHubCIMonitorProps & { ref?: 
               <span className="text-2xs text-muted-foreground shrink-0">
                 {formatTimeAgo(w.updatedAt)}
               </span>
-              {(w.conclusion === 'failure' || w.conclusion === 'timed_out') && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => startMission({
-                      title: `Diagnose: ${w.name}`,
-                      description: `Diagnose failing workflow ${w.name} on ${w.repo}`,
-                      type: 'troubleshoot',
-                      initialPrompt: `Diagnose why the "${w.name}" workflow failed on ${w.repo} (branch: ${w.branch}).\n\nRun URL: ${w.url}\n\nPlease:\n1. Check the workflow logs and identify the root cause.\n2. Tell me what went wrong, then ask:\n   - "Should I create a fix?"\n   - "Show me more details"\n3. If I say fix it, create a branch with the fix and open a PR.`,
-                    })}
-                    className="text-muted-foreground hover:text-blue-400 p-1 rounded hover:bg-blue-500/10 shrink-0"
-                    title={TITLE_DIAGNOSE}
+              {
+                (w.conclusion === 'failure' || w.conclusion === 'timed_out') && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => startMission({
+                        title: `Diagnose: ${w.name}`,
+                        description: `Diagnose failing workflow ${w.name} on ${w.repo}`,
+                        type: 'troubleshoot',
+                        initialPrompt: `Diagnose why the "${w.name}" workflow failed on ${w.repo} (branch: ${w.branch}).\n\nRun URL: ${w.url}\n\nPlease:\n1. Check the workflow logs and identify the root cause.\n2. Tell me what went wrong, then ask:\n   - "Should I create a fix?"\n   - "Show me more details"\n3. If I say fix it, create a branch with the fix and open a PR.`,
+                      })}
+                      className="text-muted-foreground hover:text-blue-400 p-1 rounded hover:bg-blue-500/10 shrink-0"
+                      title={TITLE_DIAGNOSE}
+                    >
+                      <Stethoscope className="w-3 h-3" />
+                    </button>
+                    <CardAIActions
+                      resource={{ kind: 'GitHubWorkflow', name: w.name, status: w.conclusion }}
+                      issues={[{ name: `${w.conclusion} on ${w.repo}/${w.branch}`, message: `Run #${w.runNumber}, event: ${w.event}` }]}
+                      showRepair={false}
+                    />
+                  </>
+                )
+              }
+              {
+                w.url !== '#' && (
+                  <a
+                    href={w.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 p-0.5 rounded hover:bg-secondary transition-colors"
+                    onClick={e => e.stopPropagation()}
                   >
-                    <Stethoscope className="w-3 h-3" />
-                  </button>
-                  <CardAIActions
-                    resource={{ kind: 'GitHubWorkflow', name: w.name, status: w.conclusion }}
-                    issues={[{ name: `${w.conclusion} on ${w.repo}/${w.branch}`, message: `Run #${w.runNumber}, event: ${w.event}` }]}
-                    showRepair={false}
-                  />
-                </>
-              )}
-              {w.url !== '#' && (
-                <a
-                  href={w.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 p-0.5 rounded hover:bg-secondary transition-colors"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                </a>
-              )}
-            </div>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </a>
+                )
+              }
+            </div >
           )
         })}
-        {items.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">No matching workflows.</p>
-        )}
-      </div>
+        {
+          items.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">No matching workflows.</p>
+          )
+        }
+      </div >
 
       {/* Pagination */}
-      {needsPagination && (
-        <div className="mt-2 pt-2 border-t border-border/50">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={typeof itemsPerPage === 'number' ? itemsPerPage : totalItems}
-            onPageChange={goToPage}
-          />
-        </div>
-      )}
+      {
+        needsPagination && (
+          <div className="mt-2 pt-2 border-t border-border/50">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={typeof itemsPerPage === 'number' ? itemsPerPage : totalItems}
+              onPageChange={goToPage}
+            />
+          </div>
+        )
+      }
 
       {/* Alerts with inline diagnose buttons */}
       <WorkloadMonitorAlerts issues={issues} monitorType="GitHub CI" />
-    </div>
+    </div >
   )
 }

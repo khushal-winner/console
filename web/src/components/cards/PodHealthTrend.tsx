@@ -13,9 +13,11 @@ import {
   CHART_GRID_STROKE,
   CHART_AXIS_STROKE,
   CHART_TOOLTIP_CONTENT_STYLE,
-  CHART_TICK_COLOR } from '../../lib/constants'
+  CHART_TICK_COLOR
+} from '../../lib/constants'
 import { useDemoMode } from '../../hooks/useDemoMode'
 import { safeGet, safeSet } from '../../lib/safeLocalStorage'
+import { DynamicCardErrorBoundary } from './DynamicCardErrorBoundary'
 
 interface HealthPoint {
   time: string
@@ -60,7 +62,8 @@ export function PodHealthTrend() {
     hasAnyData: hasData,
     isDemoData: isDemoModeActive || isDemoFallback,
     isFailed: clustersFailed || issuesFailed,
-    consecutiveFailures: Math.max(clustersFailures, issuesFailures) })
+    consecutiveFailures: Math.max(clustersFailures, issuesFailures)
+  })
   const [timeRange, setTimeRange] = useState<TimeRange>('1h')
   const [localClusterFilter, setLocalClusterFilter] = useState<string[]>([])
   const [showClusterFilter, setShowClusterFilter] = useState(false)
@@ -107,7 +110,8 @@ export function PodHealthTrend() {
       try {
         safeSet(STORAGE_KEY, JSON.stringify({
           data: history,
-          timestamp: Date.now() }))
+          timestamp: Date.now()
+        }))
       } catch {
         // Ignore stringify errors
       }
@@ -185,7 +189,8 @@ export function PodHealthTrend() {
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       healthy: currentStats.healthy,
       issues: currentStats.issues,
-      pending: currentStats.pending }
+      pending: currentStats.pending
+    }
 
     // Only add if data changed or 30 seconds passed
     const lastPoint = historyRef.current[historyRef.current.length - 1]
@@ -222,7 +227,8 @@ export function PodHealthTrend() {
             time: t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             healthy: currentStats.healthy + jitter,
             issues: Math.max(0, currentStats.issues - jitter + Math.floor(Math.random() * 2)),
-            pending: Math.max(0, currentStats.pending + (i % 3 === 0 ? 1 : 0)) })
+            pending: Math.max(0, currentStats.pending + (i % 3 === 0 ? 1 : 0))
+          })
         }
         if (!cancelled) {
           historyRef.current = points
@@ -233,7 +239,8 @@ export function PodHealthTrend() {
           time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           healthy: currentStats.healthy,
           issues: currentStats.issues,
-          pending: currentStats.pending }
+          pending: currentStats.pending
+        }
         if (!cancelled) {
           historyRef.current = [initialPoint]
           setHistory([initialPoint])
@@ -283,8 +290,10 @@ export function PodHealthTrend() {
         lineStyle: { color: '#f97316', width: 2 },
         itemStyle: { color: '#f97316' },
         areaStyle: {
-          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [{ offset: 0, color: 'rgba(249,115,22,0.4)' }, { offset: 1, color: 'rgba(249,115,22,0)' }] },
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(249,115,22,0.4)' }, { offset: 1, color: 'rgba(249,115,22,0)' }]
+          },
         },
         showSymbol: false,
       },
@@ -297,8 +306,10 @@ export function PodHealthTrend() {
         lineStyle: { color: '#eab308', width: 2 },
         itemStyle: { color: '#eab308' },
         areaStyle: {
-          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [{ offset: 0, color: 'rgba(234,179,8,0.4)' }, { offset: 1, color: 'rgba(234,179,8,0)' }] },
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(234,179,8,0.4)' }, { offset: 1, color: 'rgba(234,179,8,0)' }]
+          },
         },
         showSymbol: false,
       },
@@ -311,8 +322,10 @@ export function PodHealthTrend() {
         lineStyle: { color: '#22c55e', width: 2 },
         itemStyle: { color: '#22c55e' },
         areaStyle: {
-          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [{ offset: 0, color: 'rgba(34,197,94,0.4)' }, { offset: 1, color: 'rgba(34,197,94,0)' }] },
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(34,197,94,0.4)' }, { offset: 1, color: 'rgba(34,197,94,0)' }]
+          },
         },
         showSymbol: false,
       },
@@ -449,5 +462,13 @@ export function PodHealthTrend() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PodHealthTrendWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="PodHealthTrend">
+      <PodHealthTrend />
+    </DynamicCardErrorBoundary>
   )
 }

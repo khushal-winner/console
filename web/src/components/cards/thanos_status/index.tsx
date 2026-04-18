@@ -1,6 +1,7 @@
 import { CheckCircle, AlertTriangle, RefreshCw, Database, Radio, Activity } from 'lucide-react'
 import { Skeleton } from '../../ui/Skeleton'
 import { useThanosStatus } from './useThanosStatus'
+import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
 function useFormatRelativeTime() {
     return (isoString: string): string => {
@@ -78,8 +79,8 @@ export function ThanosStatus() {
             <div className="flex flex-wrap items-center justify-between gap-y-2">
                 <div
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isHealthy
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-yellow-500/20 text-yellow-400'
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-yellow-500/20 text-yellow-400'
                         }`}
                 >
                     {isHealthy ? (
@@ -173,5 +174,13 @@ export function ThanosStatus() {
                 </a>
             </div>
         </div>
+    )
+}
+
+export default function ThanosStatusWrapped() {
+    return (
+        <DynamicCardErrorBoundary cardId="ThanosStatus">
+            <ThanosStatus />
+        </DynamicCardErrorBoundary>
     )
 }

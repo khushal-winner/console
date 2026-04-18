@@ -14,6 +14,7 @@ import { useCardLoadingState } from './CardDataContext'
 import { LOCAL_AGENT_WS_URL } from '../../lib/constants'
 import { safeGetJSON, safeSetJSON } from '../../lib/safeLocalStorage'
 import { useTranslation } from 'react-i18next'
+import { DynamicCardErrorBoundary } from './DynamicCardErrorBoundary'
 
 const WS_CONNECTION_TIMEOUT_MS = 5000
 
@@ -235,7 +236,8 @@ function createVersionWsHandle(): VersionWsHandle {
         socket.send(JSON.stringify({
           id: requestId,
           type: 'kubectl',
-          payload: { context: clusterName, args: ['version', '-o', 'json'] } }))
+          payload: { context: clusterName, args: ['version', '-o', 'json'] }
+        }))
       })
     } catch {
       return getCachedVersion(clusterName)
@@ -327,7 +329,8 @@ const STATUS_ORDER: Record<string, number> = { available: 0, loading: 1, unreach
 const UPGRADE_SORT_COMPARATORS: Record<SortByOption, (a: UpgradeItem, b: UpgradeItem) => number> = {
   status: commonComparators.statusOrder<UpgradeItem>('status', STATUS_ORDER),
   version: commonComparators.string<UpgradeItem>('currentVersion'),
-  cluster: commonComparators.string<UpgradeItem>('name') }
+  cluster: commonComparators.string<UpgradeItem>('name')
+}
 
 // Demo versions keyed by cluster name keywords
 const DEMO_VERSIONS: Record<string, string> = {
@@ -339,7 +342,8 @@ const DEMO_VERSIONS: Record<string, string> = {
   kind: 'v1.32.0',
   k3s: 'v1.31.1',
   minikube: 'v1.31.3',
-  rancher: 'v1.29.6' }
+  rancher: 'v1.29.6'
+}
 
 function getDemoVersionForCluster(name: string): string {
   const lower = name.toLowerCase()
@@ -392,7 +396,8 @@ export function UpgradeStatus({ config: _config }: UpgradeStatusProps) {
     hasAnyData: hasData,
     isDemoData: isDemoMode,
     isFailed,
-    consecutiveFailures })
+    consecutiveFailures
+  })
 
   // Track previous agent connection state to detect reconnections
   const prevAgentConnectedRef = useRef(agentConnected)
@@ -584,7 +589,9 @@ Please proceed step by step and ask for confirmation before making any changes.`
       context: {
         clusterName,
         currentVersion,
-        targetVersion } })
+        targetVersion
+      }
+    })
     setPendingUpgrade(null)
     // Reset the ref on the next tick so a subsequent (new) upgrade
     // mission can run normally.
@@ -636,11 +643,12 @@ Please proceed step by step and ask for confirmation before making any changes.`
         currentVersion,
         targetVersion: hasUpgrade ? targetVersion : currentVersion,
         status: isUnreachable ? 'unreachable' as const :
-                isStillLoading ? 'loading' as const :
-                hasUpgrade ? 'available' as const : 'current' as const,
+          isStillLoading ? 'loading' as const :
+            hasUpgrade ? 'available' as const : 'current' as const,
         progress: 0,
         isUnreachable,
-        isLoading: isStillLoading }
+        isLoading: isStillLoading
+      }
     })
   }, [globalFilteredClusters, clusterVersions, agentConnected, fetchCompleted, latestMinor])
 
@@ -671,15 +679,18 @@ Please proceed step by step and ask for confirmation before making any changes.`
       setSortDirection },
     containerRef,
     containerStyle } = useCardData<UpgradeItem, SortByOption>(clusterVersionData, {
-    filter: {
-      searchFields: ['name', 'currentVersion'],
-      clusterField: 'name',
-      storageKey: 'upgrade-status' },
-    sort: {
-      defaultField: 'status',
-      defaultDirection: 'asc',
-      comparators: UPGRADE_SORT_COMPARATORS },
-    defaultLimit: 5 })
+      filter: {
+        searchFields: ['name', 'currentVersion'],
+        clusterField: 'name',
+        storageKey: 'upgrade-status'
+      },
+      sort: {
+        defaultField: 'status',
+        defaultDirection: 'asc',
+        comparators: UPGRADE_SORT_COMPARATORS
+      },
+      defaultLimit: 5
+    })
 
   // Suppress unused variable warnings for values used indirectly
   void totalItems
@@ -719,7 +730,8 @@ Please proceed step by step and ask for confirmation before making any changes.`
             isOpen: showClusterFilter,
             setIsOpen: setShowClusterFilter,
             containerRef: clusterFilterRef,
-            minClusters: 1 }}
+            minClusters: 1
+          }}
           cardControls={{
             limit: itemsPerPage,
             onLimitChange: setItemsPerPage,
@@ -727,7 +739,8 @@ Please proceed step by step and ask for confirmation before making any changes.`
             sortOptions: SORT_OPTIONS,
             onSortChange: (v) => setSortBy(v as SortByOption),
             sortDirection,
-            onSortDirectionChange: setSortDirection }}
+            onSortDirectionChange: setSortDirection
+          }}
           className="mb-0"
         />
       </div>
@@ -784,7 +797,8 @@ Please proceed step by step and ask for confirmation before making any changes.`
                   name: cluster.status === 'unreachable' ? 'Cluster unreachable' : 'Upgrade available',
                   message: cluster.status === 'unreachable'
                     ? `Cluster ${cluster.name} is unreachable and cannot be queried for version info`
-                    : `Cluster ${cluster.name} can be upgraded from ${cluster.currentVersion} to ${cluster.targetVersion}` }]}
+                    : `Cluster ${cluster.name} can be upgraded from ${cluster.currentVersion} to ${cluster.targetVersion}`
+                }]}
                 className="mt-2"
               />
             )}
@@ -814,5 +828,13 @@ Please proceed step by step and ask for confirmation before making any changes.`
         />
       )}
     </div>
+  )
+}
+
+export default function UpgradeStatusWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="UpgradeStatus">
+      <UpgradeStatus />
+    </DynamicCardErrorBoundary>
   )
 }

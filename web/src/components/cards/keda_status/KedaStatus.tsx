@@ -7,12 +7,14 @@ import {
   PauseCircle,
   XCircle,
   TrendingUp,
-  Server } from 'lucide-react'
+  Server
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Skeleton, SkeletonStats, SkeletonList } from '../../ui/Skeleton'
 import { CardSearchInput } from '../../../lib/cards/CardComponents'
 import { useKedaStatus } from './useKedaStatus'
 import type { KedaScaledObject, KedaScaledObjectStatus, KedaTriggerType } from './demoData'
+import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,19 +27,24 @@ const STATUS_CONFIG: Record<
   ready: {
     label: 'Ready',
     color: 'text-green-400',
-    icon: <CheckCircle className="w-3.5 h-3.5 text-green-400" /> },
+    icon: <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+  },
   degraded: {
     label: 'Degraded',
     color: 'text-yellow-400',
-    icon: <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" /> },
+    icon: <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+  },
   paused: {
     label: 'Paused',
     color: 'text-blue-400',
-    icon: <PauseCircle className="w-3.5 h-3.5 text-blue-400" /> },
+    icon: <PauseCircle className="w-3.5 h-3.5 text-blue-400" />
+  },
   error: {
     label: 'Error',
     color: 'text-red-400',
-    icon: <XCircle className="w-3.5 h-3.5 text-red-400" /> } }
+    icon: <XCircle className="w-3.5 h-3.5 text-red-400" />
+  }
+}
 
 const TRIGGER_LABELS: Record<KedaTriggerType, string> = {
   kafka: 'Kafka',
@@ -49,7 +56,8 @@ const TRIGGER_LABELS: Record<KedaTriggerType, string> = {
   cron: 'Cron',
   cpu: 'CPU',
   memory: 'Memory',
-  external: 'External' }
+  external: 'External'
+}
 
 function useFormatRelativeTime() {
   const { t } = useTranslation('cards')
@@ -76,12 +84,12 @@ function StatTile({
   value,
   colorClass,
   borderClass }: {
-  icon: React.ReactNode
-  label: string
-  value: number
-  colorClass: string
-  borderClass: string
-}) {
+    icon: React.ReactNode
+    label: string
+    value: number
+    colorClass: string
+    borderClass: string
+  }) {
   return (
     <div className={`p-3 rounded-lg bg-secondary/30 border ${borderClass}`}>
       <div className="flex items-center gap-2 mb-1">
@@ -97,10 +105,10 @@ function ReplicaBar({
   current,
   desired,
   max }: {
-  current: number
-  desired: number
-  max: number
-}) {
+    current: number
+    desired: number
+    max: number
+  }) {
   const pct = max > 0 ? Math.min((current / max) * 100, 100) : 0
   const targetPct = max > 0 ? Math.min((desired / max) * 100, 100) : 0
   const atTarget = current === desired
@@ -203,7 +211,8 @@ export function KedaStatus() {
       total: objs.length,
       ready: objs.filter(o => o.status === 'ready').length,
       degradedOrError: objs.filter(o => o.status === 'degraded' || o.status === 'error').length,
-      paused: objs.filter(o => o.status === 'paused').length }
+      paused: objs.filter(o => o.status === 'paused').length
+    }
   })()
 
   // Guard against undefined nested data from API/cache
@@ -379,5 +388,13 @@ export function KedaStatus() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function KedaStatusWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="KedaStatus">
+      <KedaStatus />
+    </DynamicCardErrorBoundary>
   )
 }

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useCachedPods } from '../../hooks/useCachedData'
 import { useCardLoadingState } from './CardDataContext'
 import { RefreshIndicator } from '../ui/RefreshIndicator'
+import { DynamicCardErrorBoundary } from './DynamicCardErrorBoundary'
 
 interface NamespaceUsage {
   namespace: string
@@ -24,7 +25,8 @@ export function QuotaHeatmap() {
     hasAnyData: hasData,
     isDemoData: isDemoFallback,
     isFailed,
-    consecutiveFailures })
+    consecutiveFailures
+  })
 
   const namespaceData = (() => {
     const map = new Map<string, NamespaceUsage>()
@@ -34,7 +36,8 @@ export function QuotaHeatmap() {
         map.set(key, {
           namespace: pod.namespace || 'default',
           cluster: pod.cluster || 'unknown',
-          podCount: 0 })
+          podCount: 0
+        })
       }
       map.get(key)!.podCount++
     }
@@ -98,9 +101,8 @@ export function QuotaHeatmap() {
             <button
               key={`${ns.cluster}/${ns.namespace}`}
               onClick={() => setSelectedNs(isSelected ? null : `${ns.cluster}/${ns.namespace}`)}
-              className={`p-1.5 rounded text-xs transition-all ${getHeatColor(ratio)} ${
-                isSelected ? 'ring-2 ring-primary scale-105' : 'hover:scale-105'
-              }`}
+              className={`p-1.5 rounded text-xs transition-all ${getHeatColor(ratio)} ${isSelected ? 'ring-2 ring-primary scale-105' : 'hover:scale-105'
+                }`}
               title={`${ns.namespace} (${ns.cluster}): ${ns.podCount} pods — relative density ${Math.round((ns.podCount / maxPods) * 100)}%`}
             >
               <div className="truncate font-medium">{ns.namespace}</div>
@@ -124,5 +126,13 @@ export function QuotaHeatmap() {
         <div className="text-xs text-muted-foreground text-center">{t('quotaHeatmap.more', { count: namespaceData.length - 60 })}</div>
       )}
     </div>
+  )
+}
+
+export default function QuotaHeatmapWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="QuotaHeatmap">
+      <QuotaHeatmap />
+    </DynamicCardErrorBoundary>
   )
 }

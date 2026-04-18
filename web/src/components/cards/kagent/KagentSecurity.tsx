@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Shield, ShieldCheck, ShieldAlert, AlertTriangle, Lock } from 'lucide-react'
 import { useKagentCRDAgents, useKagentCRDTools } from '../../../hooks/mcp/kagent_crds'
 import { useCardLoadingState } from '../CardDataContext'
+import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
 export function KagentSecurity({ config }: { config?: Record<string, unknown> }) {
   const cluster = config?.cluster as string | undefined
@@ -58,7 +59,8 @@ export function KagentSecurity({ config }: { config?: Record<string, unknown> })
       modelAuthPct,
       remoteTools,
       readyTools,
-      totalTools: tools.length }
+      totalTools: tools.length
+    }
   }, [agents, tools])
 
   const byoAgents = agents.filter(a => a.agentType === 'BYO')
@@ -169,5 +171,13 @@ export function KagentSecurity({ config }: { config?: Record<string, unknown> })
         <div className="text-center py-6 text-muted-foreground text-xs">No kagent resources found</div>
       )}
     </div>
+  )
+}
+
+export default function KagentSecurityWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="KagentSecurity">
+      <KagentSecurity />
+    </DynamicCardErrorBoundary>
   )
 }

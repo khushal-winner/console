@@ -7,6 +7,7 @@ import { useReportCardDataState } from './CardDataContext'
 import { emitGameStarted, emitGameEnded } from '../../lib/analytics'
 import { useGameKeyTracking } from '../../hooks/useGameKeys'
 import { safeGet, safeSet } from '../../lib/safeLocalStorage'
+import { DynamicCardErrorBoundary } from './DynamicCardErrorBoundary'
 
 /** localStorage key for Kube Galaga high score persistence */
 const HIGH_SCORE_KEY = 'kubeGalagaHighScore'
@@ -38,7 +39,8 @@ const COLORS = {
   enemy2: '#ffd93d',
   enemy3: '#6bcb77',
   enemyBullet: '#ff4444',
-  star: '#ffffff' }
+  star: '#ffffff'
+}
 
 interface Bullet {
   x: number
@@ -95,7 +97,8 @@ export function KubeGalaga() {
       x: Math.random() * CANVAS_WIDTH,
       y: Math.random() * CANVAS_HEIGHT,
       speed: 0.5 + Math.random() * 1.5,
-      size: Math.random() > 0.7 ? 2 : 1 }))
+      size: Math.random() > 0.7 ? 2 : 1
+    }))
   }
 
   // Initialize enemies
@@ -114,7 +117,8 @@ export function KubeGalaga() {
           diving: false,
           diveX: 0,
           diveY: 0,
-          diveAngle: 0 })
+          diveAngle: 0
+        })
       }
     }
     enemiesRef.current = enemies
@@ -139,7 +143,8 @@ export function KubeGalaga() {
     bulletsRef.current.push({
       x: playerRef.current.x + PLAYER_WIDTH / 2 - BULLET_WIDTH / 2,
       y: playerRef.current.y - BULLET_HEIGHT,
-      isEnemy: false })
+      isEnemy: false
+    })
     shootCooldownRef.current = 15
   }
 
@@ -154,7 +159,8 @@ export function KubeGalaga() {
       bulletsRef.current.push({
         x: shooter.x + ENEMY_WIDTH / 2 - 2,
         y: shooter.y + ENEMY_HEIGHT,
-        isEnemy: true })
+        isEnemy: true
+      })
     }
   }
 
@@ -596,5 +602,13 @@ export function KubeGalaga() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function KubeGalagaWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="KubeGalaga">
+      <KubeGalaga />
+    </DynamicCardErrorBoundary>
   )
 }

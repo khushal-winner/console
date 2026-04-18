@@ -32,6 +32,7 @@ import { useDemoMode } from '../../../hooks/useDemoMode'
 import { useGlobalFilters } from '../../../hooks/useGlobalFilters'
 import { useTranslation } from 'react-i18next'
 import { useOpenKruiseStatus } from './useOpenKruiseStatus'
+import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
 interface OpenKruiseStatusProps {
   config?: {
@@ -47,12 +48,12 @@ interface OpenKruiseDisplayItem {
   namespace: string
   cluster: string
   category:
-    | 'cloneset'
-    | 'statefulset'
-    | 'daemonset'
-    | 'sidecarset'
-    | 'broadcastjob'
-    | 'cronjob'
+  | 'cloneset'
+  | 'statefulset'
+  | 'daemonset'
+  | 'sidecarset'
+  | 'broadcastjob'
+  | 'cronjob'
   status: string
   primaryDetail: string
   secondaryDetail: string
@@ -118,11 +119,11 @@ const SORT_OPTIONS_KEYS: ReadonlyArray<{
   value: SortByOption
   labelKey: SortTranslationKey
 }> = [
-  { value: 'status', labelKey: 'common:common.status' },
-  { value: 'name', labelKey: 'common:common.name' },
-  { value: 'category', labelKey: 'cards:openkruiseStatus.category' },
-  { value: 'timestamp', labelKey: 'cards:openkruiseStatus.updated' },
-]
+    { value: 'status', labelKey: 'common:common.status' },
+    { value: 'name', labelKey: 'common:common.name' },
+    { value: 'category', labelKey: 'cards:openkruiseStatus.category' },
+    { value: 'timestamp', labelKey: 'cards:openkruiseStatus.updated' },
+  ]
 
 export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
   const { t } = useTranslation(['cards', 'common'])
@@ -641,11 +642,10 @@ export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
               return (
                 <div
                   key={item.id}
-                  className={`p-3 rounded-lg ${
-                    isFailedLike
+                  className={`p-3 rounded-lg ${isFailedLike
                       ? 'bg-red-500/10 border border-red-500/20'
                       : 'bg-secondary/30'
-                  } hover:bg-secondary/50 transition-colors cursor-pointer group`}
+                    } hover:bg-secondary/50 transition-colors cursor-pointer group`}
                   title={`${item.name} \u2014 ${getCategoryLabel(item.category)}`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-y-2 mb-1">
@@ -758,11 +758,11 @@ export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
                 localClusterFilter.length === 1
                   ? localClusterFilter[0]
                   : t('openkruiseStatus.nClustersScope', {
-                      count:
-                        localClusterFilter.length > 1
-                          ? localClusterFilter.length
-                          : availableClusters.length,
-                    }),
+                    count:
+                      localClusterFilter.length > 1
+                        ? localClusterFilter.length
+                        : availableClusters.length,
+                  }),
             })}
             <a
               href="https://openkruise.io/docs/"
@@ -777,5 +777,13 @@ export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
         </>
       )}
     </div>
+  )
+}
+
+export default function OpenKruiseStatusWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="OpenKruiseStatus">
+      <OpenKruiseStatus />
+    </DynamicCardErrorBoundary>
   )
 }

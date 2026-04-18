@@ -4,6 +4,7 @@ import { Skeleton } from '../../ui/Skeleton'
 import { MetricTile } from '../../../lib/cards/CardComponents'
 import { useFlatcarStatus } from './useFlatcarStatus'
 import { compareFlatcarVersions } from './versionUtils'
+import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
 function useFormatRelativeTime() {
   const { t } = useTranslation('cards')
@@ -65,11 +66,10 @@ export function FlatcarStatus() {
       {/* Health badge + last check */}
       <div className="flex flex-wrap items-center justify-between gap-y-2">
         <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-            isHealthy
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isHealthy
               ? 'bg-green-500/15 text-green-400'
               : 'bg-orange-500/15 text-orange-400'
-          }`}
+            }`}
         >
           {isHealthy ? (
             <CheckCircle className="w-4 h-4" />
@@ -118,9 +118,8 @@ export function FlatcarStatus() {
                 </div>
                 <div className="flex-1 h-2 bg-secondary/50 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${
-                      isLatest ? 'bg-green-500/60' : 'bg-orange-500/40'
-                    }`}
+                    className={`h-full rounded-full transition-all ${isLatest ? 'bg-green-500/60' : 'bg-orange-500/40'
+                      }`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -148,5 +147,13 @@ export function FlatcarStatus() {
         </a>
       </div>
     </div>
+  )
+}
+
+export default function FlatcarStatusWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="FlatcarStatus">
+      <FlatcarStatus />
+    </DynamicCardErrorBoundary>
   )
 }

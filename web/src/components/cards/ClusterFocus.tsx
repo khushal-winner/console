@@ -9,6 +9,7 @@ import { RefreshIndicator } from '../ui/RefreshIndicator'
 import { useCardLoadingState } from './CardDataContext'
 import { useTranslation } from 'react-i18next'
 import { useDemoMode } from '../../hooks/useDemoMode'
+import { DynamicCardErrorBoundary } from './DynamicCardErrorBoundary'
 
 interface ClusterFocusProps {
   config?: {
@@ -43,7 +44,8 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
     hasAnyData: hasData,
     isDemoData: isDemoMode || gpuDemoFallback || podsDemoFallback || deployDemoFallback,
     isFailed,
-    consecutiveFailures })
+    consecutiveFailures
+  })
 
   const {
     selectedClusters: globalSelectedClusters,
@@ -74,8 +76,8 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
   const cluster = clusters.find(c => c.name === clusterName)
 
   const clusterGPUs = gpuNodes
-      .filter(n => n.cluster === clusterName || n.cluster.includes(clusterName))
-      .reduce((sum, n) => sum + n.gpuCount, 0)
+    .filter(n => n.cluster === clusterName || n.cluster.includes(clusterName))
+    .reduce((sum, n) => sum + n.gpuCount, 0)
 
   const clusterPodIssues = podIssues.length
   const clusterDeploymentIssues = deploymentIssues.length
@@ -179,7 +181,8 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
             nodeCount: cluster.nodeCount,
             podCount: cluster.podCount,
             cpuCores: cluster.cpuCores,
-            server: cluster.server })}
+            server: cluster.server
+          })}
         >
           <div className="flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-blue-400" />
@@ -224,7 +227,8 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
                 status: issue.status,
                 reason: issue.reason,
                 issues: issue.issues,
-                restarts: issue.restarts })
+                restarts: issue.restarts
+              })
             }
           }}
           title={podIssues.length > 0 ? t('cards:clusterFocus.clickToView', { name: podIssues[0].name }) : t('cards:clusterFocus.noPodIssues')}
@@ -245,7 +249,8 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
                 replicas: issue.replicas,
                 readyReplicas: issue.readyReplicas,
                 reason: issue.reason,
-                message: issue.message })
+                message: issue.message
+              })
             }
           }}
           title={deploymentIssues.length > 0 ? t('cards:clusterFocus.clickToView', { name: deploymentIssues[0].name }) : t('cards:clusterFocus.noDeploymentIssues')}
@@ -268,5 +273,13 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ClusterFocusWrapped() {
+  return (
+    <DynamicCardErrorBoundary cardId="ClusterFocus">
+      <ClusterFocus />
+    </DynamicCardErrorBoundary>
   )
 }
