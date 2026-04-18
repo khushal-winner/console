@@ -101,8 +101,8 @@ export function Tier1CardRuntime({ cardDefinition }: Tier1Props) {
   const data = isInvalidConfig
     ? []
     : (cardDefinition?.dataSource === 'static'
-        ? (cardDefinition?.staticData || [])
-        : apiData)
+      ? (cardDefinition?.staticData || [])
+      : apiData)
 
   // Report loading state to CardWrapper so header stays in sync with body (#5208)
   const isApiSource = !isInvalidConfig && cardDefinition?.dataSource === 'api'
@@ -409,7 +409,6 @@ export function Tier2CardRuntime({ definition, config }: Tier2Props) {
       } catch (err) {
         if (cancelled) return
         const message = err instanceof Error ? err.message : String(err)
-        console.error(`[DynamicCard] Unexpected compile error:`, err)
         setError(`Unexpected error: ${message}`)
         setCompiling(false)
       }
