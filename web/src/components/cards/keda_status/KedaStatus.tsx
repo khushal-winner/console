@@ -198,7 +198,7 @@ function ScaledObjectRow({ obj }: { obj: KedaScaledObject }) {
 // Main component
 // ---------------------------------------------------------------------------
 
-export function KedaStatus() {
+function KedaStatusInternal() {
   const { t } = useTranslation('cards')
   const formatRelativeTime = useFormatRelativeTime()
   const { data, isRefreshing, error, showSkeleton, showEmptyState } = useKedaStatus()
@@ -391,10 +391,10 @@ export function KedaStatus() {
   )
 }
 
-export default function KedaStatusWrapped() {
+export function KedaStatus() {
   return (
     <DynamicCardErrorBoundary cardId="KedaStatus">
-      <KedaStatus />
+      <KedaStatusInternal />
     </DynamicCardErrorBoundary>
   )
 }

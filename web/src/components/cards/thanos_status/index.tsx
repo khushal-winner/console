@@ -36,7 +36,7 @@ function MetricTile({ label, value, colorClass, icon }: MetricTileProps) {
     )
 }
 
-export function ThanosStatus() {
+function ThanosStatusInternal() {
     const formatRelativeTime = useFormatRelativeTime()
     const { data, error, showSkeleton, showEmptyState } = useThanosStatus()
 
@@ -177,10 +177,10 @@ export function ThanosStatus() {
     )
 }
 
-export default function ThanosStatusWrapped() {
+export function ThanosStatus() {
     return (
         <DynamicCardErrorBoundary cardId="ThanosStatus">
-            <ThanosStatus />
+            <ThanosStatusInternal />
         </DynamicCardErrorBoundary>
     )
 }

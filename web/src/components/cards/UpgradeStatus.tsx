@@ -355,7 +355,7 @@ function getDemoVersionForCluster(name: string): string {
   return versions[name.length % versions.length]
 }
 
-export function UpgradeStatus({ config: _config }: UpgradeStatusProps) {
+function UpgradeStatusInternal({ config: _config }: UpgradeStatusProps) {
   const { t } = useTranslation()
   const { deduplicatedClusters: allClusters, isLoading: isLoadingHook, isRefreshing, isFailed, consecutiveFailures } = useClusters()
   const { drillToCluster } = useDrillDownActions()
@@ -831,10 +831,10 @@ Please proceed step by step and ask for confirmation before making any changes.`
   )
 }
 
-export default function UpgradeStatusWrapped() {
+export function UpgradeStatus({ config: _config }: UpgradeStatusProps) {
   return (
     <DynamicCardErrorBoundary cardId="UpgradeStatus">
-      <UpgradeStatus />
+      <UpgradeStatusInternal config={_config} />
     </DynamicCardErrorBoundary>
   )
 }

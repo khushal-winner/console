@@ -66,7 +66,7 @@ interface Star {
   size: number
 }
 
-export function KubeGalaga() {
+function KubeGalagaInternal() {
   useReportCardDataState({ hasData: true, isFailed: false, consecutiveFailures: 0, isDemoData: false })
   const { isExpanded } = useCardExpanded()
   const gameContainerRef = useRef<HTMLDivElement>(null)
@@ -605,10 +605,10 @@ export function KubeGalaga() {
   )
 }
 
-export default function KubeGalagaWrapped() {
+export function KubeGalaga() {
   return (
     <DynamicCardErrorBoundary cardId="KubeGalaga">
-      <KubeGalaga />
+      <KubeGalagaInternal />
     </DynamicCardErrorBoundary>
   )
 }

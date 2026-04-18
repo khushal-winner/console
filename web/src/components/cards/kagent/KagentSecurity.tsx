@@ -4,7 +4,7 @@ import { useKagentCRDAgents, useKagentCRDTools } from '../../../hooks/mcp/kagent
 import { useCardLoadingState } from '../CardDataContext'
 import { DynamicCardErrorBoundary } from '../DynamicCardErrorBoundary'
 
-export function KagentSecurity({ config }: { config?: Record<string, unknown> }) {
+function KagentSecurityInternal({ config }: { config?: Record<string, unknown> }) {
   const cluster = config?.cluster as string | undefined
   const {
     data: agents,
@@ -174,10 +174,10 @@ export function KagentSecurity({ config }: { config?: Record<string, unknown> })
   )
 }
 
-export default function KagentSecurityWrapped() {
+export function KagentSecurity({ config }: { config?: Record<string, unknown> }) {
   return (
     <DynamicCardErrorBoundary cardId="KagentSecurity">
-      <KagentSecurity />
+      <KagentSecurityInternal config={config} />
     </DynamicCardErrorBoundary>
   )
 }

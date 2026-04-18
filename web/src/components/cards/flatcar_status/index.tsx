@@ -22,7 +22,7 @@ function useFormatRelativeTime() {
 }
 
 
-export function FlatcarStatus() {
+function FlatcarStatusInternal() {
   const { t } = useTranslation('cards')
   const formatRelativeTime = useFormatRelativeTime()
   const { data, error, showSkeleton, showEmptyState } = useFlatcarStatus()
@@ -67,8 +67,8 @@ export function FlatcarStatus() {
       <div className="flex flex-wrap items-center justify-between gap-y-2">
         <div
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isHealthy
-              ? 'bg-green-500/15 text-green-400'
-              : 'bg-orange-500/15 text-orange-400'
+            ? 'bg-green-500/15 text-green-400'
+            : 'bg-orange-500/15 text-orange-400'
             }`}
         >
           {isHealthy ? (
@@ -150,10 +150,10 @@ export function FlatcarStatus() {
   )
 }
 
-export default function FlatcarStatusWrapped() {
+export function FlatcarStatus() {
   return (
     <DynamicCardErrorBoundary cardId="FlatcarStatus">
-      <FlatcarStatus />
+      <FlatcarStatusInternal />
     </DynamicCardErrorBoundary>
   )
 }

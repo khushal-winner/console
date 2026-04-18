@@ -43,7 +43,7 @@ const TIME_RANGE_OPTIONS: { value: TimeRange; label: string; points: number }[] 
   { value: '24h', label: '24 hours', points: TIME_RANGE_MAX_POINTS['24h'] },
 ]
 
-export function PodHealthTrend() {
+function PodHealthTrendInternal() {
   const { t } = useTranslation(['common', 'cards'])
   const { deduplicatedClusters: clusters, isLoading: clustersLoading, isRefreshing: clustersRefreshing, isFailed: clustersFailed, consecutiveFailures: clustersFailures } = useClusters()
   const { issues, isLoading: issuesLoading, isRefreshing: issuesRefreshing, isDemoFallback, isFailed: issuesFailed, consecutiveFailures: issuesFailures } = useCachedPodIssues()
@@ -465,10 +465,10 @@ export function PodHealthTrend() {
   )
 }
 
-export default function PodHealthTrendWrapped() {
+export function PodHealthTrend() {
   return (
     <DynamicCardErrorBoundary cardId="PodHealthTrend">
-      <PodHealthTrend />
+      <PodHealthTrendInternal />
     </DynamicCardErrorBoundary>
   )
 }

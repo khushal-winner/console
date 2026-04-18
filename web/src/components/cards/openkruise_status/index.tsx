@@ -125,7 +125,7 @@ const SORT_OPTIONS_KEYS: ReadonlyArray<{
     { value: 'timestamp', labelKey: 'cards:openkruiseStatus.updated' },
   ]
 
-export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
+function OpenKruiseStatusInternal({ config: _config }: OpenKruiseStatusProps) {
   const { t } = useTranslation(['cards', 'common'])
   const SORT_OPTIONS = useMemo(
     () =>
@@ -643,8 +643,8 @@ export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
                 <div
                   key={item.id}
                   className={`p-3 rounded-lg ${isFailedLike
-                      ? 'bg-red-500/10 border border-red-500/20'
-                      : 'bg-secondary/30'
+                    ? 'bg-red-500/10 border border-red-500/20'
+                    : 'bg-secondary/30'
                     } hover:bg-secondary/50 transition-colors cursor-pointer group`}
                   title={`${item.name} \u2014 ${getCategoryLabel(item.category)}`}
                 >
@@ -780,10 +780,10 @@ export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
   )
 }
 
-export default function OpenKruiseStatusWrapped() {
+export function OpenKruiseStatus({ config: _config }: OpenKruiseStatusProps) {
   return (
     <DynamicCardErrorBoundary cardId="OpenKruiseStatus">
-      <OpenKruiseStatus />
+      <OpenKruiseStatusInternal config={_config} />
     </DynamicCardErrorBoundary>
   )
 }

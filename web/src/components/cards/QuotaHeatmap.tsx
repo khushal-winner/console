@@ -13,7 +13,7 @@ interface NamespaceUsage {
   podQuota?: number
 }
 
-export function QuotaHeatmap() {
+function QuotaHeatmapInternal() {
   const { t } = useTranslation('cards')
   const { pods, isLoading, isRefreshing, isDemoFallback, isFailed, consecutiveFailures, lastRefresh: podsLastRefresh } = useCachedPods(undefined, undefined, { limit: 500 })
   const [selectedNs, setSelectedNs] = useState<string | null>(null)
@@ -129,10 +129,10 @@ export function QuotaHeatmap() {
   )
 }
 
-export default function QuotaHeatmapWrapped() {
+export function QuotaHeatmap() {
   return (
     <DynamicCardErrorBoundary cardId="QuotaHeatmap">
-      <QuotaHeatmap />
+      <QuotaHeatmapInternal />
     </DynamicCardErrorBoundary>
   )
 }

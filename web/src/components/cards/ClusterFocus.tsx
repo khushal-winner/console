@@ -17,7 +17,7 @@ interface ClusterFocusProps {
   }
 }
 
-export function ClusterFocus({ config }: ClusterFocusProps) {
+function ClusterFocusInternal({ config }: ClusterFocusProps) {
   const { t } = useTranslation(['cards', 'common'])
   const selectedCluster = config?.cluster
   const { deduplicatedClusters: allClusters, isLoading: clustersLoading, isRefreshing: clustersRefreshing, isFailed, consecutiveFailures, lastRefresh: clustersLastRefreshDate } = useClusters()
@@ -276,10 +276,10 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
   )
 }
 
-export default function ClusterFocusWrapped() {
+export function ClusterFocus({ config }: ClusterFocusProps) {
   return (
     <DynamicCardErrorBoundary cardId="ClusterFocus">
-      <ClusterFocus />
+      <ClusterFocusInternal config={config} />
     </DynamicCardErrorBoundary>
   )
 }
