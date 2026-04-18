@@ -45,7 +45,8 @@ interface HighScore {
 const DIFFICULTY_CONFIG = {
   easy: { rows: 3, cols: 4, pairs: 6 },
   medium: { rows: 4, cols: 4, pairs: 8 },
-  hard: { rows: 4, cols: 6, pairs: 12 } }
+  hard: { rows: 4, cols: 6, pairs: 12 }
+}
 
 export function MatchGame(_props: CardComponentProps) {
   const { t } = useTranslation()
@@ -63,7 +64,8 @@ export function MatchGame(_props: CardComponentProps) {
   const [highScores, setHighScores] = useState<Record<Difficulty, HighScore | null>>({
     easy: null,
     medium: null,
-    hard: null })
+    hard: null
+  })
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -73,8 +75,7 @@ export function MatchGame(_props: CardComponentProps) {
     if (stored) {
       try {
         setHighScores(JSON.parse(stored))
-      } catch (e) {
-        console.error('Failed to load high scores:', e)
+      } catch (_e) {
         showToast(t('matchGame.errors.highScoresFailed', 'Could not load high scores.'), 'warning')
       }
     }
@@ -88,7 +89,7 @@ export function MatchGame(_props: CardComponentProps) {
       { id: `${icon.id}-1`, iconId: icon.id, matched: false },
       { id: `${icon.id}-2`, iconId: icon.id, matched: false },
     ])
-    
+
     // Shuffle cards using Fisher-Yates algorithm
     const shuffled = [...cardPairs]
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -124,7 +125,7 @@ export function MatchGame(_props: CardComponentProps) {
     if (isPlaying && cards.length > 0 && cards.every(card => card.matched)) {
       setGameWon(true)
       setIsPlaying(false)
-      
+
       // Save high score
       const currentScore = highScores[difficulty]
       if (!currentScore || moves < currentScore.moves || (moves === currentScore.moves && time < currentScore.time)) {
@@ -135,7 +136,7 @@ export function MatchGame(_props: CardComponentProps) {
         setHighScores(newHighScores)
         localStorage.setItem('matchGameHighScores', JSON.stringify(newHighScores))
       }
-      
+
       emitGameEnded('match', 'win', moves)
 
       // Trigger confetti
@@ -157,7 +158,7 @@ export function MatchGame(_props: CardComponentProps) {
 
     if (newFlipped.length === 2) {
       setMoves(m => m + 1)
-      
+
       const [first, second] = newFlipped
       const firstCard = cards.find(c => c.id === first)
       const secondCard = cards.find(c => c.id === second)
@@ -215,7 +216,8 @@ export function MatchGame(_props: CardComponentProps) {
         color: colors[Math.floor(Math.random() * colors.length)],
         size: Math.random() * 8 + 4,
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.2 })
+        rotationSpeed: (Math.random() - 0.5) * 0.2
+      })
     }
 
     let animationFrame: number
@@ -298,11 +300,10 @@ export function MatchGame(_props: CardComponentProps) {
             <button
               key={d}
               onClick={() => changeDifficulty(d)}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                difficulty === d
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-muted-foreground'
-              }`}
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${difficulty === d
+                ? 'bg-purple-500 text-white'
+                : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-muted-foreground'
+                }`}
             >
               {d.charAt(0).toUpperCase() + d.slice(1)}
             </button>
@@ -382,11 +383,12 @@ export function MatchGame(_props: CardComponentProps) {
 
       {/* Game board */}
       {isPlaying && !gameWon && (
-        <div 
+        <div
           className="flex-1 grid gap-1.5 items-center justify-items-center"
           style={{
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}
+            gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`
+          }}
         >
           {cards.map(card => {
             const icon = CARD_ICONS.find(i => i.id === card.iconId)
@@ -402,19 +404,17 @@ export function MatchGame(_props: CardComponentProps) {
                 style={{ opacity: isPaused ? 0.5 : 1 }}
               >
                 <div
-                  className={`card-inner w-full h-full transition-transform duration-500 transform-style-3d ${
-                    isFlipped ? 'rotate-y-180' : ''
-                  }`}
+                  className={`card-inner w-full h-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''
+                    }`}
                 >
                   {/* Card back */}
                   <div className="card-face absolute inset-0 backface-hidden bg-gradient-to-br from-purple-500/20 to-blue-500/20 border-2 border-purple-500/30 rounded flex items-center justify-center">
                     <Terminal className="w-5 h-5 text-purple-400" />
                   </div>
-                  
+
                   {/* Card front */}
-                  <div className={`card-face absolute inset-0 backface-hidden rotate-y-180 ${
-                    card.matched ? 'bg-green-500/20 border-green-500/30' : 'bg-black/10 dark:bg-white/10 border-black/20 dark:border-white/20'
-                  } border-2 rounded flex items-center justify-center`}>
+                  <div className={`card-face absolute inset-0 backface-hidden rotate-y-180 ${card.matched ? 'bg-green-500/20 border-green-500/30' : 'bg-black/10 dark:bg-white/10 border-black/20 dark:border-white/20'
+                    } border-2 rounded flex items-center justify-center`}>
                     <Icon className={`w-6 h-6 ${icon?.color || 'text-blue-400'}`} />
                   </div>
                 </div>
