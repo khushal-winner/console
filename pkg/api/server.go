@@ -344,7 +344,7 @@ func NewServer(cfg Config) (*Server, error) {
 
 	// Start GPU utilization background worker (collects hourly snapshots)
 	if k8sClient != nil {
-		server.gpuUtilWorker = NewGPUUtilizationWorker(db, k8sClient)
+		server.gpuUtilWorker = NewGPUUtilizationWorker(db, k8sClient, notificationService)
 		server.gpuUtilWorker.Start()
 	} else {
 		slog.Info("[Server] GPU utilization worker skipped — no Kubernetes client available")
@@ -1276,7 +1276,8 @@ func (s *Server) setupRoutes() {
 	s.app.Post("/webhooks/github", feedback.HandleGitHubWebhook)
 
 	// WebSocket for real-time updates
-	s.app.Use("/ws", middleware.WebSocketUpgrade())
+	// Rate-limited with publicLimiter to prevent connection flooding DoS
+	s.app.Use("/ws", publicLimiter, middleware.WebSocketUpgrade())
 	s.app.Get("/ws", websocket.New(func(c *websocket.Conn) {
 		s.hub.HandleConnection(c)
 	}))

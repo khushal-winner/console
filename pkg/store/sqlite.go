@@ -100,6 +100,9 @@ const (
 	sqliteDefaultConnMaxLifetime = 5 * time.Minute
 	// sqliteDefaultConnMaxIdleTime closes long-idle connections
 	sqliteDefaultConnMaxIdleTime = 2 * time.Minute
+	// sqliteMinConnLifetime is the minimum allowed connection lifetime
+	// to prevent excessive connection churn
+	sqliteMinConnLifetime = 30 * time.Second
 	// sqliteBusyTimeoutMs is the millisecond duration that a writer will
 	// wait for the SQLite write lock before returning SQLITE_BUSY. Under
 	// WAL mode only one writer holds the lock at a time; this timeout
@@ -226,8 +229,7 @@ func configureConnectionPool(db *sql.DB) {
 	}
 
 	// Validate lifetime >= 30s to prevent excessive connection churn
-	minLifetime := 30 * time.Second
-	if lifetime < minLifetime {
+	if lifetime < sqliteMinConnLifetime {
 		slog.Warn("[SQLite] KC_SQLITE_CONN_MAX_LIFETIME must be >= 30s, using default",
 			"value", lifetime, "default", sqliteDefaultConnMaxLifetime)
 		lifetime = sqliteDefaultConnMaxLifetime
