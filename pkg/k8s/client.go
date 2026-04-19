@@ -46,6 +46,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
+	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 // PrivilegedClient is an alias for MultiClusterClient whose sole purpose is
@@ -111,6 +112,7 @@ type MultiClusterClient struct {
 	kubeconfig      string
 	clients         map[string]kubernetes.Interface
 	dynamicClients  map[string]dynamic.Interface
+	metricsClients  map[string]metricsv.Interface
 	configs         map[string]*rest.Config
 	rawConfig       *api.Config
 	healthCache     map[string]*ClusterHealth
@@ -823,6 +825,7 @@ func NewMultiClusterClient(kubeconfig string) (*MultiClusterClient, error) {
 		kubeconfig:     kubeconfig,
 		clients:        make(map[string]kubernetes.Interface),
 		dynamicClients: make(map[string]dynamic.Interface),
+		metricsClients: make(map[string]metricsv.Interface),
 		configs:        make(map[string]*rest.Config),
 		healthCache:    make(map[string]*ClusterHealth),
 		cacheTTL:       clusterCacheTTL,
@@ -1662,6 +1665,52 @@ func (m *MultiClusterClient) GetDynamicClient(contextName string) (dynamic.Inter
 	}
 
 	m.dynamicClients[contextName] = client
+	return client, nil
+}
+
+// GetMetricsClient returns a metrics kubernetes client for the specified context
+func (m *MultiClusterClient) GetMetricsClient(contextName string) (metricsv.Interface, error) {
+	m.mu.RLock()
+	if client, ok := m.metricsClients[contextName]; ok {
+		m.mu.RUnlock()
+		return client, nil
+	}
+	m.mu.RUnlock()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Double-check after acquiring write lock
+	if client, ok := m.metricsClients[contextName]; ok {
+		return client, nil
+	}
+
+	// Get or create config
+	config, ok := m.configs[contextName]
+	if !ok {
+		var err error
+		isInCluster := m.inClusterConfig != nil && (contextName == "in-cluster" || contextName == m.inClusterName)
+		if isInCluster {
+			config = rest.CopyConfig(m.inClusterConfig)
+		} else {
+			config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+				&clientcmd.ClientConfigLoadingRules{ExplicitPath: m.kubeconfig},
+				&clientcmd.ConfigOverrides{CurrentContext: contextName},
+			).ClientConfig()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get config for context %s: %w", contextName, err)
+			}
+		}
+		config.Timeout = k8sClientTimeout
+		m.configs[contextName] = config
+	}
+
+	client, err := metricsv.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create metrics client for context %s: %w", contextName, err)
+	}
+
+	m.metricsClients[contextName] = client
 	return client, nil
 }
 

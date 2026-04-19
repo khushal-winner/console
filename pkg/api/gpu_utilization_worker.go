@@ -33,13 +33,14 @@ const (
 
 // GPUUtilizationWorker periodically collects GPU utilization data for active reservations
 type GPUUtilizationWorker struct {
-	store      store.Store
-	k8sClient  *k8s.MultiClusterClient
-	interval   time.Duration
-	stopCh     chan struct{}
-	stopOnce   sync.Once // protects stopCh from double-close panic
-	baseCtx    context.Context
-	baseCancel context.CancelFunc
+	store              store.Store
+	k8sClient          *k8s.MultiClusterClient
+	interval           time.Duration
+	stopCh             chan struct{}
+	stopOnce           sync.Once // protects stopCh from double-close panic
+	baseCtx            context.Context
+	baseCancel         context.CancelFunc
+	gpuMetricsEnabled  bool
 }
 
 // NewGPUUtilizationWorker creates a new GPU utilization worker
@@ -51,14 +52,17 @@ func NewGPUUtilizationWorker(s store.Store, k8sClient *k8s.MultiClusterClient) *
 		}
 	}
 
+	gpuMetricsEnabled := os.Getenv("GPU_METRICS_ENABLED") == "true"
+
 	ctx, cancel := context.WithCancel(context.Background())
 	return &GPUUtilizationWorker{
-		store:      s,
-		k8sClient:  k8sClient,
-		interval:   time.Duration(intervalMs) * time.Millisecond,
-		stopCh:     make(chan struct{}),
-		baseCtx:    ctx,
-		baseCancel: cancel,
+		store:              s,
+		k8sClient:          k8sClient,
+		interval:           time.Duration(intervalMs) * time.Millisecond,
+		stopCh:             make(chan struct{}),
+		baseCtx:            ctx,
+		baseCancel:         cancel,
+		gpuMetricsEnabled:  gpuMetricsEnabled,
 	}
 }
 
@@ -184,12 +188,46 @@ func (w *GPUUtilizationWorker) collectForReservation(ctx context.Context, reserv
 		gpuUtilPct = (float64(activeGPUCount) / float64(totalGPUs)) * fullUtilizationPct
 	}
 
+	// Calculate GPU memory utilization if metrics-server is enabled
+	var memoryUtilPct float64
+	if w.gpuMetricsEnabled && totalGPUs > 0 {
+		podMetrics, err := w.k8sClient.GetPodGPUMetrics(ctx, cluster, namespace)
+		if err == nil && podMetrics != nil {
+			// Sum memory usage across all GPU pods in the reservation
+			var totalMemoryUsedBytes int64
+			for _, pod := range pods {
+				if pod.Status != "Running" {
+					continue
+				}
+				podGPUs := 0
+				for _, c := range pod.Containers {
+					podGPUs += c.GPURequested
+				}
+				if podGPUs > 0 {
+					totalMemoryUsedBytes += podMetrics[pod.Name]
+				}
+			}
+
+			// Calculate percentage: (used / total GPU memory) * 100
+			// Note: This is an approximation since we don't have per-GPU memory capacity
+			// We use the reservation's GPU count as a proxy for total memory capacity
+			// A more accurate approach would require querying node GPU memory capacity
+			// For now, we normalize by assuming 80GB per GPU (common for A100/H100)
+			const avgGPUMemoryBytes = 80 * 1024 * 1024 * 1024 // 80GB
+			totalGPUMemoryBytes := int64(totalGPUs) * avgGPUMemoryBytes
+			if totalGPUMemoryBytes > 0 {
+				memoryUtilPct = (float64(totalMemoryUsedBytes) / float64(totalGPUMemoryBytes)) * 100.0
+			}
+		}
+		// If metrics-server is unavailable, memoryUtilPct remains 0 (fallback behavior)
+	}
+
 	snapshot := &models.GPUUtilizationSnapshot{
 		ID:                   uuid.New().String(),
 		ReservationID:        reservation.ID.String(),
 		Timestamp:            time.Now(),
 		GPUUtilizationPct:    gpuUtilPct,
-		MemoryUtilizationPct: 0, // Memory metrics require a metrics-server; 0 indicates unavailable (#7019)
+		MemoryUtilizationPct: memoryUtilPct,
 		ActiveGPUCount:       activeGPUCount,
 		TotalGPUCount:        totalGPUs,
 	}

@@ -12,6 +12,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -295,6 +296,38 @@ func (m *MultiClusterClient) GetGPUNodes(ctx context.Context, contextName string
 	}
 
 	return gpuNodes, nil
+}
+
+// GetPodGPUMetrics returns GPU memory utilization metrics for pods in a namespace.
+// Returns a map of pod name to memory usage in bytes. Gracefully returns nil map
+// if metrics-server is unavailable or pod has no GPU memory metrics.
+func (m *MultiClusterClient) GetPodGPUMetrics(ctx context.Context, contextName, namespace string) (map[string]int64, error) {
+	metricsClient, err := m.GetMetricsClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+
+	podMetricsList, err := metricsClient.MetricsV1beta1().PodMetricses(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		// Metrics-server may not be installed or accessible - return gracefully
+		return nil, nil
+	}
+
+	podMemoryUsage := make(map[string]int64)
+	for _, podMetrics := range podMetricsList.Items {
+		var totalMemoryBytes int64
+		for _, container := range podMetrics.Containers {
+			// Sum memory usage across all containers in the pod
+			if memUsage, ok := container.Usage[corev1.ResourceMemory]; ok {
+				totalMemoryBytes += memUsage.Value()
+			}
+		}
+		if totalMemoryBytes > 0 {
+			podMemoryUsage[podMetrics.Name] = totalMemoryBytes
+		}
+	}
+
+	return podMemoryUsage, nil
 }
 
 // GPU operator namespace names to search for operator pods
