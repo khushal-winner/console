@@ -64,15 +64,9 @@
     "best_pr_size": "S",
     "size_acceptance": {},
     "type_acceptance": {},
-    "common_rejection_reasons": [
-      "- PR #5289: Closing — already implemented and merged in PR #5290.",
-      "- PR #5273: Closing — NPS was already implemented and merged in PR #5274. This Copilot PR is a duplicate.",
-      "- PR #5256: Closing — KubeVirt support was already implemented in PRs #5254 (dashboard card) and commits on main (settings integration). Copilot auto-assignment has been disabled.",
-      "- PR #5246: Closing — Copilot auto-assignment has been disabled. Issues are handled by Claude Code scanner.",
-      "- PR #5245: Closing — Copilot auto-assignment has been disabled. Issues are handled by Claude Code scanner."
-    ],
+    "common_rejection_reasons": [],
     "best_change_type": "bug_fix",
-    "last_report_date": "2026-04-12"
+    "last_report_date": "2026-04-19"
   },
   "cncf_insights": {
     "last_scan_date": "2026-04-15",
