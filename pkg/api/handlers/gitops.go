@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -1787,11 +1788,12 @@ func cloneRepo(ctx context.Context, repoURL, branch string) (string, error) {
 
 // isKustomizeDir checks if a directory contains kustomization.yaml or kustomization.yml
 func isKustomizeDir(path string) bool {
-	cmd := exec.Command("test", "-f", path+"/kustomization.yaml")
+	cleanPath := filepath.Clean(path)
+	cmd := exec.Command("test", "-f", cleanPath+"/kustomization.yaml")
 	if cmd.Run() == nil {
 		return true
 	}
-	cmd = exec.Command("test", "-f", path+"/kustomization.yml")
+	cmd = exec.Command("test", "-f", cleanPath+"/kustomization.yml")
 	return cmd.Run() == nil
 }
 
