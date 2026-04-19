@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"regexp"
@@ -51,6 +52,8 @@ const (
 	ghpMaxLogBytes           = 10 * 1024 * 1024 // 10 MB cap on job log downloads
 	ghpMatrixSparseMinCells  = 1
 	ghpReleaseOverfetch      = 10 // fetch recent releases so we can sort by published_at
+	ghpMaxRetries            = 3
+	ghpRetryBaseDelay        = 5 * time.Second // fallback when Retry-After header is missing
 )
 
 // ghpDefaultRepos is the default when PIPELINE_REPOS env var is not set.
@@ -493,6 +496,64 @@ func (h *GitHubPipelinesHandler) ghGet(ctx context.Context, path string) (*http.
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Authorization", "Bearer "+h.token)
 	return h.httpClient.Do(req)
+}
+
+// ghGetWithRetry performs an HTTP GET with retry on GitHub API rate limit errors (403/429).
+// Respects the Retry-After header when present, otherwise uses a 5-second backoff.
+// Honors context cancellation to prevent goroutine leaks.
+func (h *GitHubPipelinesHandler) ghGetWithRetry(ctx context.Context, path string) (*http.Response, error) {
+	var lastErr error
+	var retryAfter time.Duration
+
+	for attempt := 0; attempt <= ghpMaxRetries; attempt++ {
+		if attempt > 0 {
+			// Determine wait time: use Retry-After header if available, otherwise use default
+			waitTime := ghpRetryBaseDelay
+			if retryAfter > 0 {
+				waitTime = retryAfter
+			}
+			slog.Info("[GitHubPipelines] retrying GitHub API request", "attempt", attempt, "maxRetries", ghpMaxRetries, "wait", waitTime)
+
+			// Wait with context cancellation support
+			select {
+			case <-time.After(waitTime):
+				// Proceed with retry
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+
+		resp, err := h.ghGet(ctx, path)
+		if err != nil {
+			lastErr = fmt.Errorf("HTTP error: %w", err)
+			continue
+		}
+
+		// Check for rate limit errors
+		if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests {
+			// Parse Retry-After header for next attempt
+			retryAfter = 0
+			if ra := resp.Header.Get("Retry-After"); ra != "" {
+				if seconds, parseErr := strconv.Atoi(ra); parseErr == nil && seconds > 0 {
+					retryAfter = time.Duration(seconds) * time.Second
+				}
+			}
+
+			// Read error body for logging
+			body, readErr := io.ReadAll(io.LimitReader(resp.Body, ghpMaxErrorBodyBytes))
+			if readErr != nil {
+				body = []byte("(failed to read response body)")
+			}
+			resp.Body.Close()
+			lastErr = fmt.Errorf("GitHub API returned %d: %s", resp.StatusCode, string(body))
+			continue
+		}
+
+		// Success or non-retryable error
+		return resp, nil
+	}
+
+	return nil, lastErr
 }
 
 // workflowRunsRaw is the subset of GitHub's workflow_run JSON we consume.
