@@ -482,6 +482,8 @@ func (h *GitHubPipelinesHandler) serveCached(c *fiber.Ctx, key string, build fun
 // ---------------------------------------------------------------------------
 
 func (h *GitHubPipelinesHandler) ghGet(ctx context.Context, path string) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(ctx, ghpHTTPTimeout)
+	defer cancel()
 	url := path
 	if !strings.HasPrefix(url, "http") {
 		url = ghpGitHubAPIBase + path
