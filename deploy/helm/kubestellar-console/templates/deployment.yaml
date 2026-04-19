@@ -45,6 +45,8 @@ spec:
           # on clusters enforcing PodSecurity restricted.
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backup.resources | nindent 12 }}
           command:
             - /bin/sh
             - -c
